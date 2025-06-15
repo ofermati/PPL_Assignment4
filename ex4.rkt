@@ -75,7 +75,7 @@
 ;; constant real number
 (define as-real
   (lambda (x)
-    #f ;@TODO
+    (cons-lzl x (lambda () (as-real x)))
   )
 )
 
@@ -85,7 +85,7 @@
 ;; Purpose: Addition of real numbers
 (define ++
   (lambda (x y)
-    #f ;@TODO
+    (cons-lzl (+ (car-lzl x) (car-lzl y)) (lambda () (++ (cdr-lzl x) (cdr-lzl y))))
   )
 )
 
@@ -94,7 +94,7 @@
 ;; Purpose: Subtraction of real numbers
 (define --
   (lambda (x y)
-    #f ;@TODO
+    (cons-lzl (- (car-lzl x) (car-lzl y)) (lambda () (-- (cdr-lzl x) (cdr-lzl y))))
   )
 )
 
@@ -103,15 +103,17 @@
 ;; Purpose: Multiplication of real numbers
 (define **
   (lambda (x y)
-    #f ;@TODO
+    (cons-lzl (* (car-lzl x) (car-lzl y)) (lambda () (** (cdr-lzl x) (cdr-lzl y))))
   )
 )
+
 ;; Signature: //(x, y)
 ;; Type: [ Lzl(Number) * Lzl(Number) -> Lzl(Number) ]
 ;; Purpose: Division of real numbers
+;; Pre-Condition: y does not contain 0
 (define //
   (lambda (x y)
-    #f ;@TODO
+    (cons-lzl (/ (car-lzl x) (car-lzl y)) (lambda () (// (cdr-lzl x) (cdr-lzl y))))
   )
 )
 
@@ -121,11 +123,21 @@
 ;; Purpose: Using an initial approximation `y`, return a 
 ;; sequence of real numbers which converges into the 
 ;; square root of `x`
-(define sqrt-with
-  (lambda (x y)
-    #f ;@TODO
-  )
-)
+
+; (define sqrt-with
+;   (lambda (x y)
+;     (define curr_y (/ (+ (* (car-lzl y) (car-lzl y)) (car-lzl x)) (* 2 (car-lzl y))))
+;     (cons (cons curr_y (lambda () (sqrt-with (x) (curr_y))))
+;           (lambda () (sqrt-with (cdr-lzl x) (cdr-lzl y))))
+;   )
+; )
+
+(define (sqrt-step x y')
+  (// (++ (** y' y') x) (** (as-real 2) y')))
+
+(define (sqrt-with x y)
+  (cons-lzl y (lambda () (sqrt-with x (sqrt-step x y)))))
+
 
 ;;; Q4.2.b
 ;; Signature: diag(lzl)
@@ -133,10 +145,13 @@
 ;; Purpose: Diagonalize an infinite lazy list
 (define diag
   (lambda (lzl)
-    #f ;@TODO
+    (cons-lzl (car-lzl (car-lzl lzl)) (lambda () (diag (cdr-step (cdr-lzl lzl)))))
   )
 )
 
+(define (cdr-step x)
+  (cons-lzl (cdr-lzl (car-lzl x)) (lambda () (cdr-step (cdr-lzl x))))
+)
 ;;; Q4.2.c
 ;; Signature: rsqrt(x)
 ;; Type: [ Lzl(Number) -> Lzl(Number) ]
@@ -144,6 +159,5 @@
 ;; Example: (take (rsqrt (as-real 4.0)) 6) => '(4.0 2.5 2.05 2.0006097560975613 2.0000000929222947 2.000000000000002)
 (define rsqrt
   (lambda (x)
-    #f ;@TODO
-  )
+  (diag(sqrt-with(x x))))
 )
