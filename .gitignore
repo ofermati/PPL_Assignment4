@@ -1,0 +1,29 @@
+# Node.js dependencies
+node_modules/
+
+# TypeScript build output (אם תתחיל להוציא קבצי .js)
+dist/
+*.js
+*.js.map
+
+# NYC coverage output
+coverage/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# macOS metadata
+.DS_Store
+
+# VSCode settings (אם עובדים עם VSCode)
+.vscode/
+
+# סביבת בדיקות / פלט זמני
+*.log
+*.tmp
+*.tsbuildinfo
+
+# תוצרי מערכת אחרים
+.idea/
