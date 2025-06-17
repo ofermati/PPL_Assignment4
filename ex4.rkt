@@ -14,7 +14,7 @@
   (lambda (lzl)
     ((cdr lzl))))
 
-(define leaf? (lambda (x) (not (list? x))))
+; (define leaf? (lambda (x) (not (list? x))))
 
 ;; Signature: map-lzl(f, lz)
 ;; Type: [[T1 -> T2] * Lzl(T1) -> Lzl(T2)]
@@ -44,6 +44,17 @@
         (head lz-lst)
         (nth (tail lz-lst) (- n 1)))))
 
+(define make-tree list)
+(define add-subtree cons)
+(define make-leaf (lambda (x) x))
+(define empty-tree? empty?)
+(define first-subtree car)
+(define rest-subtree cdr)
+(define leaf-data (lambda (x) x))
+(define composite-tree? list?)
+(define leaf? (lambda (x) (not (composite-tree? x))))
+
+;3____________________________________________________________________________________________________
 
 ;;; Q3.1
 ; Signature: append$(lst1, lst2, cont) 
@@ -51,21 +62,40 @@
 ; Purpose: Returns the concatination of the given two lists, with cont pre-processing
 (define append$
   (lambda (lst1 lst2 cont)
-    #f ;@TODO
-  )
-)
+    (if (empty? lst1)
+      (cont lst2)
+      (append$ (cdr lst1) lst2
+        (lambda (append$_cdrLst1_lst2)
+          (cont (cons (car lst1) append$_cdrLst1_lst2))))
+  )))
 
 ;;; Q3.2
 ; Signature: equal-trees$(tree1, tree2, succ, fail) 
 ; Type: [Tree * Tree * [Tree ->T1] * [Pair->T2] -> T1 U T2
 ; Purpose: Determines the structure identity of a given two lists, with post-processing succ/fail
-(define equal-trees$ 
-  (lambda (tree1 tree2 succ fail)
-    #f ;@TODO
-  )
-)
+(define equal-trees$
+  (lambda (t1 t2 succ fail)
+    (cond
+      [(empty-tree? t1)
+       (if (empty-tree? t2) (succ '()) (fail (cons t1 t2)))]
+
+      [(and (not (pair? t1)) (not (pair? t2)))
+       (succ (add-subtree t1 t2))]
+
+      [(or (not (pair? t1)) (not (pair? t2)))
+       (fail (cons t1 t2))]
+
+      [else
+       (equal-trees$ (first-subtree t1) (first-subtree t2)
+         (lambda (left)
+           (equal-trees$ (rest-subtree t1) (rest-subtree t2)
+             (lambda (right) (succ (add-subtree left right)))
+             fail))
+         fail)])))
 
 
+
+;4____________________________________________________________________________________________________
 
 ;;; Q4.1
 
@@ -85,7 +115,7 @@
 ;; Purpose: Addition of real numbers
 (define ++
   (lambda (x y)
-    (cons-lzl (+ (car-lzl x) (car-lzl y)) (lambda () (++ (cdr-lzl x) (cdr-lzl y))))
+    (cons-lzl (+ (head x) (head y)) (lambda () (++ (tail x) (tail y))))
   )
 )
 
@@ -94,7 +124,7 @@
 ;; Purpose: Subtraction of real numbers
 (define --
   (lambda (x y)
-    (cons-lzl (- (car-lzl x) (car-lzl y)) (lambda () (-- (cdr-lzl x) (cdr-lzl y))))
+    (cons-lzl (- (head x) (head y)) (lambda () (-- (tail x) (tail y))))
   )
 )
 
@@ -103,7 +133,7 @@
 ;; Purpose: Multiplication of real numbers
 (define **
   (lambda (x y)
-    (cons-lzl (* (car-lzl x) (car-lzl y)) (lambda () (** (cdr-lzl x) (cdr-lzl y))))
+    (cons-lzl (* (head x) (head y)) (lambda () (** (tail x) (tail y))))
   )
 )
 
@@ -113,7 +143,7 @@
 ;; Pre-Condition: y does not contain 0
 (define //
   (lambda (x y)
-    (cons-lzl (/ (car-lzl x) (car-lzl y)) (lambda () (// (cdr-lzl x) (cdr-lzl y))))
+    (cons-lzl (/ (head x) (head y)) (lambda () (// (tail x) (tail y))))
   )
 )
 
@@ -124,20 +154,12 @@
 ;; sequence of real numbers which converges into the 
 ;; square root of `x`
 
-; (define sqrt-with
-;   (lambda (x y)
-;     (define curr_y (/ (+ (* (car-lzl y) (car-lzl y)) (car-lzl x)) (* 2 (car-lzl y))))
-;     (cons (cons curr_y (lambda () (sqrt-with (x) (curr_y))))
-;           (lambda () (sqrt-with (cdr-lzl x) (cdr-lzl y))))
-;   )
-; )
-
-(define (sqrt-step x y')
-  (// (++ (** y' y') x) (** (as-real 2) y')))
-
 (define (sqrt-with x y)
   (cons-lzl y (lambda () (sqrt-with x (sqrt-step x y)))))
 
+
+(define (sqrt-step a b)
+  (// (++ (** b b) a) (** (as-real 2) b)))
 
 ;;; Q4.2.b
 ;; Signature: diag(lzl)
@@ -145,12 +167,12 @@
 ;; Purpose: Diagonalize an infinite lazy list
 (define diag
   (lambda (lzl)
-    (cons-lzl (car-lzl (car-lzl lzl)) (lambda () (diag (cdr-step (cdr-lzl lzl)))))
+    (cons-lzl (head (head lzl)) (lambda () (diag (cdr-step (tail lzl)))))
   )
 )
 
 (define (cdr-step x)
-  (cons-lzl (cdr-lzl (car-lzl x)) (lambda () (cdr-step (cdr-lzl x))))
+  (cons-lzl (tail (head x)) (lambda () (cdr-step (tail x))))
 )
 ;;; Q4.2.c
 ;; Signature: rsqrt(x)
@@ -159,5 +181,5 @@
 ;; Example: (take (rsqrt (as-real 4.0)) 6) => '(4.0 2.5 2.05 2.0006097560975613 2.0000000929222947 2.000000000000002)
 (define rsqrt
   (lambda (x)
-  (diag(sqrt-with(x x))))
+  (diag(sqrt-with x x)))
 )
