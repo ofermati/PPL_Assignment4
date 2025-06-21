@@ -43,6 +43,22 @@ book(the_lord_of_the_rings, t, f, s(s(s(s(s(s(zero))))))).
 % Signature: max_list(Lst, Max)/2
 % Purpose: true if Max is the maximum church number in Lst, false if Lst is emoty.
 
+max_list([], false).
+
+max_list([X], X).
+
+max_list([H | T], H) :-
+    max_list(T, TmpMax),
+    geq_church(H, TmpMax).
+
+max_list([H | T], TmpMax) :-
+    max_list(T, TmpMax),
+    geq_church(TmpMax, H).
+
+geq_church(A, zero).    
+geq_church(s(A), s(B)) :- geq_church(A, B).
+
+
 
 
 
@@ -53,7 +69,7 @@ book(the_lord_of_the_rings, t, f, s(s(s(s(s(s(zero))))))).
 % Signature: author_of_genre(GenreName, AuthorName)/2
 % Purpose: true if an author by the name AuthorName has written a book belonging to the genre named GenreName.
 
-
+author_of_genre(GenreName, AuthorName) :- book(_, X, Y, _), genre(Y, GenreName), author(X, AuthorName).
 
 
 
@@ -62,3 +78,6 @@ book(the_lord_of_the_rings, t, f, s(s(s(s(s(s(zero))))))).
 
 % Signature: longest_book(AuthorName, BookName)/2
 % Purpose: true if the longest book that an author by the name AuthorName has written is titled BookName.
+
+longest_book(AuthorName, BookName) :- 
+author(X, AuthorName), findall(W, book(_, X, _, W), Lst), max_list(Lst, MaxLen), book(BookName, X, _, MaxLen).
