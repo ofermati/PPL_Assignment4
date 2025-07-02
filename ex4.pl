@@ -18,7 +18,6 @@ maximum_printing_depth(100).
    set_prolog_flag(toplevel_print_options, [max_depth(MPD)|B]).
 
 
-
 author(a, asimov).
 author(h, herbert).
 author(m, morris).
@@ -60,20 +59,10 @@ geq_church(s(A), s(B)) :- geq_church(A, B).
 
 
 
-
-
-
-
-
-
 % Signature: author_of_genre(GenreName, AuthorName)/2
 % Purpose: true if an author by the name AuthorName has written a book belonging to the genre named GenreName.
 
 author_of_genre(GenreName, AuthorName) :- book(_, X, Y, _), genre(Y, GenreName), author(X, AuthorName).
-
-
-
-
 
 
 % Signature: longest_book(AuthorName, BookName)/2
